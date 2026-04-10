@@ -182,7 +182,6 @@ public class UpdateHandler
                 chatId,
                 _localizationService.GetAdminWelcome(chatId),
                 replyMarkup: keyboard,
-                parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
                 cancellationToken: cancellationToken);
             return;
         }
@@ -263,7 +262,6 @@ public class UpdateHandler
             chatId,
             statusMsg.MessageId,
             resultMessage,
-            parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
             cancellationToken: cancellationToken);
     }
 

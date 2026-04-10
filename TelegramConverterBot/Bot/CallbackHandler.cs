@@ -253,7 +253,6 @@ public class CallbackHandler
                 await _botClient.SendMessage(
                     chatId,
                     _adminService.GetStatsMessage(),
-                    parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
                     cancellationToken: cancellationToken);
                 break;
 
@@ -273,7 +272,6 @@ public class CallbackHandler
                 await _botClient.SendMessage(
                     chatId,
                     _adminService.ResetStats(),
-                    parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
                     cancellationToken: cancellationToken);
                 break;
 
@@ -283,7 +281,6 @@ public class CallbackHandler
                     chatId,
                     _localizationService.GetAdminWelcome(chatId),
                     replyMarkup: keyboard,
-                    parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
                     cancellationToken: cancellationToken);
                 break;
 
@@ -325,7 +322,6 @@ public class CallbackHandler
             chatId,
             message,
             replyMarkup: keyboard,
-            parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
             cancellationToken: cancellationToken);
     }
 }

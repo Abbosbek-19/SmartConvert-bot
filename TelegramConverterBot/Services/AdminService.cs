@@ -50,26 +50,28 @@ public class AdminService
         var stats = _activityTracker.GetStats();
 
         var conversionTypeStats = stats.ConversionsByType
-            .Select(kv => $"   • {EscapeMarkdown(kv.Key)}: {kv.Value}")
+            .Select(kv => $"   - {kv.Key}: {kv.Value}")
             .DefaultIfEmpty("   No conversions yet");
 
-        return $@"📊 \*Bot Statistics\*
+        var message = $@"📊 Bot Statistics
 
-👥 \*Users:\*
-   • Total: {stats.TotalUsers}
-   • Active \(24h\): {stats.ActiveUsersToday}
-   • Active \(7d\): {stats.ActiveUsersThisWeek}
-   • Active \(30d\): {stats.ActiveUsersThisMonth}
+👥 Users:
+   - Total: {stats.TotalUsers}
+   - Active (24h): {stats.ActiveUsersToday}
+   - Active (7d): {stats.ActiveUsersThisWeek}
+   - Active (30d): {stats.ActiveUsersThisMonth}
 
-🔄 \*Conversions:\*
-   • Total: {stats.TotalConversions}
-   • Active jobs: {stats.ActiveJobs}
+🔄 Conversions:
+   - Total: {stats.TotalConversions}
+   - Active jobs: {stats.ActiveJobs}
 
-📈 \*By Type:\*
+📈 By Type:
 {string.Join("\n", conversionTypeStats)}
 
-⏱ \*Uptime:\* {stats.Uptime.Days}d {stats.Uptime.Hours}h {stats.Uptime.Minutes}m
-🚀 \*Started:\* {stats.StartedAt:yyyy\\-MM\\-dd HH\\:mm\\:ss} UTC";
+⏱ Uptime: {stats.Uptime.Days}d {stats.Uptime.Hours}h {stats.Uptime.Minutes}m
+🚀 Started: {stats.StartedAt:yyyy-MM-dd HH:mm:ss} UTC";
+
+        return message;
     }
 
     /// <summary>
@@ -87,20 +89,22 @@ public class AdminService
 
         if (pageUsers.Count == 0)
         {
-            return "👥 No users yet\\. Users will appear here when they interact with the bot\\.";
+            return "👥 No users yet. Users will appear here when they interact with the bot.";
         }
 
         var userList = pageUsers.Select((u, i) =>
         {
             var name = u.Username ?? $"{u.FirstName} {u.LastName}".Trim();
-            return $"{start + i + 1}\\. ID: `{u.ChatId}` | {EscapeMarkdown(name)} | 🌐 {EscapeMarkdown(u.Language.ToString())} | 🔄 {u.ConversionCount}";
+            return $"{start + i + 1}. ID: {u.ChatId} | {name} | 🌐 {u.Language} | 🔄 {u.ConversionCount}";
         });
 
-        return $@"👥 \*Users \(Page {page}/{totalPages}\)\*
+        var message = $@"👥 Users (Page {page}/{totalPages})
 
 {string.Join("\n", userList)}
 
-💡 Tap a user ID for details\\.";
+💡 Tap a user ID for details.";
+
+        return message;
     }
 
     /// <summary>
@@ -111,21 +115,23 @@ public class AdminService
         var user = _activityTracker.GetUserActivity(chatId);
         if (user == null)
         {
-            return "⚠️ User not found\\.";
+            return "⚠️ User not found.";
         }
 
         var name = user.Username ?? $"{user.FirstName} {user.LastName}".Trim() ?? "Unknown";
 
-        return $@"👤 \*User Details\*
+        var message = $@"👤 User Details
 
-🆔 ID: `{user.ChatId}`
-👤 Name: {EscapeMarkdown(name)}
-🌐 Language: {EscapeMarkdown(user.Language.ToString())}
+🆔 ID: {user.ChatId}
+👤 Name: {name}
+🌐 Language: {user.Language}
 
-📊 \*Activity:\*
-   • Conversions: {user.ConversionCount}
-   • First seen: {user.FirstSeen:yyyy\\-MM\\-dd HH\\:mm\\:ss}
-   • Last active: {user.LastActivity:yyyy\\-MM\\-dd HH\\:mm\\:ss}";
+📊 Activity:
+   - Conversions: {user.ConversionCount}
+   - First seen: {user.FirstSeen:yyyy-MM-dd HH:mm:ss}
+   - Last active: {user.LastActivity:yyyy-MM-dd HH:mm:ss}";
+
+        return message;
     }
 
     /// <summary>
@@ -171,18 +177,18 @@ public class AdminService
     /// </summary>
     public string GetBroadcastResultMessage(BroadcastResult result)
     {
-        var msg = $@"📢 \*Broadcast Complete\*
+        var msg = $@"📢 Broadcast Complete
 
 ✅ Success: {result.Success}/{result.Total}
 ❌ Failed: {result.Failed}/{result.Total}";
 
         if (result.Errors.Any())
         {
-            var errorList = result.Errors.Take(5).Select(e => $"   • {EscapeMarkdown(e)}");
-            msg += $"\n\n\\*Errors:\\*\n{string.Join("\n", errorList)}";
+            var errorList = result.Errors.Take(5).Select(e => $"   - {e}");
+            msg += $"\n\nErrors:\n{string.Join("\n", errorList)}";
             if (result.Errors.Count > 5)
             {
-                msg += $"\n   \\.\\.\\. and {result.Errors.Count - 5} more";
+                msg += $"\n   ... and {result.Errors.Count - 5} more";
             }
         }
 
@@ -195,7 +201,7 @@ public class AdminService
     public string ResetStats()
     {
         _activityTracker.ResetStats();
-        return "📊 \\*Statistics Reset\\*\\n\\nAll conversion counters have been reset to zero\\.\\nUser activity data is preserved\\.";
+        return "📊 Statistics Reset\n\nAll conversion counters have been reset to zero.\nUser activity data is preserved.";
     }
 
     /// <summary>
