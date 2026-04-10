@@ -12,7 +12,9 @@
       "Bash(telegramconverterbot.exe)",
       "Bash(taskkill *)",
       "Bash(start *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(dir)",
+      "Bash(del *)"
     ]
   },
   "$version": 3
