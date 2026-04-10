@@ -385,4 +385,123 @@ public class LocalizationService
             _ => En.BtnRussian
         };
     }
+
+    // Admin panel methods
+
+    /// <summary>
+    /// Gets localized admin welcome message.
+    /// </summary>
+    public string GetAdminWelcome(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminWelcome,
+            UserLanguage.Ru => Ru.AdminWelcome,
+            _ => En.AdminWelcome
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin stats button text.
+    /// </summary>
+    public string GetAdminStats(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminStats,
+            UserLanguage.Ru => Ru.AdminStats,
+            _ => En.AdminStats
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin users button text.
+    /// </summary>
+    public string GetAdminUsers(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminUsers,
+            UserLanguage.Ru => Ru.AdminUsers,
+            _ => En.AdminUsers
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin broadcast button text.
+    /// </summary>
+    public string GetAdminBroadcast(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminBroadcast,
+            UserLanguage.Ru => Ru.AdminBroadcast,
+            _ => En.AdminBroadcast
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin reset stats button text.
+    /// </summary>
+    public string GetAdminResetStats(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminResetStats,
+            UserLanguage.Ru => Ru.AdminResetStats,
+            _ => En.AdminResetStats
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin not authorized message.
+    /// </summary>
+    public string GetAdminNotAuthorized(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminNotAuthorized,
+            UserLanguage.Ru => Ru.AdminNotAuthorized,
+            _ => En.AdminNotAuthorized
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin broadcast prompt message.
+    /// </summary>
+    public string GetAdminBroadcastPrompt(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminBroadcastPrompt,
+            UserLanguage.Ru => Ru.AdminBroadcastPrompt,
+            _ => En.AdminBroadcastPrompt
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin broadcast cancel message.
+    /// </summary>
+    public string GetAdminBroadcastCancel(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminBroadcastCancel,
+            UserLanguage.Ru => Ru.AdminBroadcastCancel,
+            _ => En.AdminBroadcastCancel
+        };
+    }
+
+    /// <summary>
+    /// Gets localized admin stats reset message.
+    /// </summary>
+    public string GetAdminStatsReset(long chatId)
+    {
+        return GetLanguage(chatId) switch
+        {
+            UserLanguage.Uz => Uz.AdminStatsReset,
+            UserLanguage.Ru => Ru.AdminStatsReset,
+            _ => En.AdminStatsReset
+        };
+    }
 }

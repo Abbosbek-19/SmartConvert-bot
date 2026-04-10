@@ -22,13 +22,21 @@ public class UpdateHandler
     private readonly Helpers.FileHelper _fileHelper;
     private readonly CallbackHandler _callbackHandler;
     private readonly LocalizationService _localizationService;
+    private readonly AdminService _adminService;
+    private readonly ActivityTracker _activityTracker;
     private readonly ILogger<UpdateHandler> _logger;
     private readonly int _maxFileSizeMB;
+    private readonly long[] _adminIds;
 
     /// <summary>
     /// Stores active conversion jobs per chat session.
     /// </summary>
     public static readonly System.Collections.Concurrent.ConcurrentDictionary<long, ConversionJob> ActiveJobs = new();
+
+    /// <summary>
+    /// Stores chat IDs that are waiting for broadcast messages.
+    /// </summary>
+    public static readonly System.Collections.Concurrent.ConcurrentDictionary<long, bool> BroadcastWaiting = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateHandler"/> class.
@@ -40,6 +48,8 @@ public class UpdateHandler
         Helpers.FileHelper fileHelper,
         CallbackHandler callbackHandler,
         LocalizationService localizationService,
+        AdminService adminService,
+        ActivityTracker activityTracker,
         IOptions<BotConfiguration> config,
         ILogger<UpdateHandler> logger)
     {
@@ -49,8 +59,11 @@ public class UpdateHandler
         _fileHelper = fileHelper;
         _callbackHandler = callbackHandler;
         _localizationService = localizationService;
+        _adminService = adminService;
+        _activityTracker = activityTracker;
         _logger = logger;
         _maxFileSizeMB = config.Value.MaxFileSizeMB;
+        _adminIds = config.Value.AdminIds;
     }
 
     /// <summary>
@@ -101,6 +114,21 @@ public class UpdateHandler
     {
         var chatId = message.Chat.Id;
 
+        // Track user activity
+        _activityTracker.RecordUserActivity(
+            chatId,
+            message.From?.Username,
+            message.From?.FirstName,
+            message.From?.LastName,
+            _localizationService.GetLanguage(chatId));
+
+        // Check if admin is waiting for broadcast message
+        if (BroadcastWaiting.ContainsKey(chatId) && message.Type == MessageType.Text)
+        {
+            await HandleBroadcastMessageAsync(chatId, message.Text!, cancellationToken);
+            return;
+        }
+
         // Handle commands
         if (message.Type == MessageType.Text && message.Text!.StartsWith('/'))
         {
@@ -130,12 +158,34 @@ public class UpdateHandler
     }
 
     /// <summary>
-    /// Handles bot commands like /start, /help, and /lang.
+    /// Handles bot commands like /start, /help, /lang, and /admin.
     /// </summary>
     private async Task HandleCommandAsync(Message message, CancellationToken cancellationToken)
     {
         var chatId = message.Chat.Id;
         var command = message.Text!.Split(' ')[0].ToLowerInvariant();
+
+        // Handle admin commands
+        if (command == "/admin")
+        {
+            if (!_adminService.IsAdmin(chatId))
+            {
+                await _botClient.SendMessage(
+                    chatId,
+                    _localizationService.GetAdminNotAuthorized(chatId),
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            var keyboard = KeyboardBuilder.BuildAdminKeyboard(_localizationService, chatId);
+            await _botClient.SendMessage(
+                chatId,
+                _localizationService.GetAdminWelcome(chatId),
+                replyMarkup: keyboard,
+                parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+                cancellationToken: cancellationToken);
+            return;
+        }
 
         switch (command)
         {
@@ -182,6 +232,39 @@ public class UpdateHandler
         var mimeType = document.MimeType;
 
         await ProcessFileAsync(chatId, document.FileId, fileName, mimeType, cancellationToken);
+    }
+
+    /// <summary>
+    /// Handles broadcast message input from admin.
+    /// </summary>
+    private async Task HandleBroadcastMessageAsync(long chatId, string message, CancellationToken cancellationToken)
+    {
+        if (message == "/cancel")
+        {
+            BroadcastWaiting.TryRemove(chatId, out _);
+            await _botClient.SendMessage(
+                chatId,
+                _localizationService.GetAdminBroadcastCancel(chatId),
+                cancellationToken: cancellationToken);
+            return;
+        }
+
+        BroadcastWaiting.TryRemove(chatId, out _);
+
+        var statusMsg = await _botClient.SendMessage(
+            chatId,
+            "📤 Broadcasting message...",
+            cancellationToken: cancellationToken);
+
+        var result = await _adminService.BroadcastMessageAsync(message, cancellationToken);
+        var resultMessage = _adminService.GetBroadcastResultMessage(result);
+
+        await _botClient.EditMessageText(
+            chatId,
+            statusMsg.MessageId,
+            resultMessage,
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+            cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -304,4 +387,9 @@ public class BotConfiguration
     /// Maximum allowed file size in megabytes.
     /// </summary>
     public int MaxFileSizeMB { get; set; } = 20;
+
+    /// <summary>
+    /// Array of Telegram user IDs who are administrators.
+    /// </summary>
+    public long[] AdminIds { get; set; } = Array.Empty<long>();
 }

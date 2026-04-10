@@ -47,4 +47,17 @@ public static class Ru
     public const string BtnEnglish = "🇬🇧 English";
     public const string BtnUzbek = "🇺🇿 O'zbekcha";
     public const string BtnRussian = "🇷🇺 Русский";
+
+    // Admin panel
+    public const string AdminWelcome = @"⚙️ **Панель администратора**
+
+Выберите действие:";
+    public const string AdminStats = "📊 Статистика";
+    public const string AdminUsers = "👥 Пользователи";
+    public const string AdminBroadcast = "📢 Рассылка";
+    public const string AdminResetStats = "🔄 Сбросить статистику";
+    public const string AdminNotAuthorized = "❌ У вас нет прав для использования этой команды.";
+    public const string AdminBroadcastPrompt = "📝 Отправьте сообщение для рассылки всем пользователям:";
+    public const string AdminBroadcastCancel = "❌ Рассылка отменена.";
+    public const string AdminStatsReset = "✅ Статистика сброшена.";
 }

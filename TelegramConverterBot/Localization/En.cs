@@ -47,4 +47,17 @@ Just send your file and I'll do the rest!";
     public const string BtnEnglish = "🇬🇧 English";
     public const string BtnUzbek = "🇺🇿 O'zbekcha";
     public const string BtnRussian = "🇷🇺 Русский";
+
+    // Admin panel
+    public const string AdminWelcome = @"⚙️ **Admin Panel**
+
+Choose an option:";
+    public const string AdminStats = "📊 Statistics";
+    public const string AdminUsers = "👥 Users";
+    public const string AdminBroadcast = "📢 Broadcast";
+    public const string AdminResetStats = "🔄 Reset Stats";
+    public const string AdminNotAuthorized = "❌ You are not authorized to use this command.";
+    public const string AdminBroadcastPrompt = "📝 Send the message you want to broadcast to all users:";
+    public const string AdminBroadcastCancel = "❌ Broadcast cancelled.";
+    public const string AdminStatsReset = "✅ Statistics have been reset.";
 }

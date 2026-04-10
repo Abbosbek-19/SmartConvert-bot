@@ -47,4 +47,17 @@ Faylingizni yuboring va men hammasini qilaman!";
     public const string BtnEnglish = "🇬🇧 English";
     public const string BtnUzbek = "🇺🇿 O'zbekcha";
     public const string BtnRussian = "🇷🇺 Русский";
+
+    // Admin panel
+    public const string AdminWelcome = @"⚙️ **Admin paneli**
+
+Variantni tanlang:";
+    public const string AdminStats = "📊 Statistika";
+    public const string AdminUsers = "👥 Foydalanuvchilar";
+    public const string AdminBroadcast = "📢 Tarqatish";
+    public const string AdminResetStats = "🔄 Statistika qayta o'rnatish";
+    public const string AdminNotAuthorized = "❌ Sizda bu buyruqdan foydalanish huquqi yo'q.";
+    public const string AdminBroadcastPrompt = "📝 Barcha foydalanuvchilarga yubormoqchi bo'lgan xabaringizni yuboring:";
+    public const string AdminBroadcastCancel = "❌ Tarqatish bekor qilindi.";
+    public const string AdminStatsReset = "✅ Statistika qayta o'rnatildi.";
 }

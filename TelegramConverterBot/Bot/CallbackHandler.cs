@@ -16,6 +16,8 @@ public class CallbackHandler
     private readonly ConversionService _conversionService;
     private readonly TempFileService _tempFileService;
     private readonly LocalizationService _localizationService;
+    private readonly AdminService _adminService;
+    private readonly ActivityTracker _activityTracker;
     private readonly ILogger<CallbackHandler> _logger;
 
     /// <summary>
@@ -25,18 +27,24 @@ public class CallbackHandler
     /// <param name="conversionService">The conversion service for routing to converters.</param>
     /// <param name="tempFileService">The temp file service for cleanup.</param>
     /// <param name="localizationService">The localization service for multi-language support.</param>
+    /// <param name="adminService">The admin service for admin operations.</param>
+    /// <param name="activityTracker">The activity tracker for tracking user activity.</param>
     /// <param name="logger">The logger instance.</param>
     public CallbackHandler(
         TelegramBotClient botClient,
         ConversionService conversionService,
         TempFileService tempFileService,
         LocalizationService localizationService,
+        AdminService adminService,
+        ActivityTracker activityTracker,
         ILogger<CallbackHandler> logger)
     {
         _botClient = botClient;
         _conversionService = conversionService;
         _tempFileService = tempFileService;
         _localizationService = localizationService;
+        _adminService = adminService;
+        _activityTracker = activityTracker;
         _logger = logger;
     }
 
@@ -62,6 +70,22 @@ public class CallbackHandler
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to answer callback query");
+        }
+
+        // Check if this is an admin callback
+        if (KeyboardBuilder.TryParseAdminCallback(callbackData, out var adminAction, out var adminParam))
+        {
+            if (!_adminService.IsAdmin(chatId))
+            {
+                await _botClient.SendMessage(
+                    chatId,
+                    _localizationService.GetAdminNotAuthorized(chatId),
+                    cancellationToken: cancellationToken);
+                return;
+            }
+
+            await HandleAdminCallbackAsync(chatId, adminAction, adminParam, cancellationToken);
+            return;
         }
 
         // Check if this is a language selection callback
@@ -146,6 +170,9 @@ public class CallbackHandler
             _logger.LogInformation(
                 "Conversion successful for chat {ChatId}: {Source} → {Target}",
                 chatId, sourceType, targetFormat);
+
+            // Track conversion
+            _activityTracker.RecordConversion(chatId, sourceType.ToString());
         }
         catch (OperationCanceledException)
         {
@@ -213,5 +240,92 @@ public class CallbackHandler
                 replyMarkup: keyboard,
                 cancellationToken: cancellationToken);
         }
+    }
+
+    /// <summary>
+    /// Handles admin panel callbacks.
+    /// </summary>
+    private async Task HandleAdminCallbackAsync(long chatId, string action, string? parameter, CancellationToken cancellationToken)
+    {
+        switch (action)
+        {
+            case "stats":
+                await _botClient.SendMessage(
+                    chatId,
+                    _adminService.GetStatsMessage(),
+                    parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case "users":
+                await HandleAdminUsersAsync(chatId, parameter, cancellationToken);
+                break;
+
+            case "broadcast":
+                UpdateHandler.BroadcastWaiting[chatId] = true;
+                await _botClient.SendMessage(
+                    chatId,
+                    _localizationService.GetAdminBroadcastPrompt(chatId) + "\n\nSend /cancel to abort.",
+                    cancellationToken: cancellationToken);
+                break;
+
+            case "reset":
+                await _botClient.SendMessage(
+                    chatId,
+                    _adminService.ResetStats(),
+                    parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+                    cancellationToken: cancellationToken);
+                break;
+
+            case "back":
+                var keyboard = KeyboardBuilder.BuildAdminKeyboard(_localizationService, chatId);
+                await _botClient.SendMessage(
+                    chatId,
+                    _localizationService.GetAdminWelcome(chatId),
+                    replyMarkup: keyboard,
+                    parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+                    cancellationToken: cancellationToken);
+                break;
+
+            default:
+                await _botClient.SendMessage(
+                    chatId,
+                    "⚠️ Unknown admin action.",
+                    cancellationToken: cancellationToken);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Handles admin users list callback.
+    /// </summary>
+    private async Task HandleAdminUsersAsync(long chatId, string? parameter, CancellationToken cancellationToken)
+    {
+        int page = 1;
+
+        if (!string.IsNullOrEmpty(parameter) && parameter.StartsWith("page:"))
+        {
+            var pageStr = parameter.Substring(5);
+            if (int.TryParse(pageStr, out var parsedPage))
+            {
+                page = parsedPage;
+            }
+        }
+
+        var users = _activityTracker.GetAllUsers();
+        var pageSize = 10;
+        var totalPages = (int)Math.Ceiling((double)users.Count / pageSize);
+        if (totalPages == 0) totalPages = 1;
+        page = Math.Max(1, Math.Min(page, totalPages));
+
+        var message = _adminService.GetUserListMessage(page, pageSize);
+        var keyboard = KeyboardBuilder.BuildUserPaginationKeyboard(page, totalPages);
+
+        await _botClient.SendMessage(
+            chatId,
+            message,
+            replyMarkup: keyboard,
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.MarkdownV2,
+            cancellationToken: cancellationToken);
     }
 }

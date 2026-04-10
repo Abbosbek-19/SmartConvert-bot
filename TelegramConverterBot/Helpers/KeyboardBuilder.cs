@@ -168,4 +168,89 @@ public static class KeyboardBuilder
 
         return Enum.TryParse<UserLanguage>(parts[2], true, out language);
     }
+
+    /// <summary>
+    /// Creates an inline keyboard for the admin panel.
+    /// </summary>
+    public static InlineKeyboardMarkup BuildAdminKeyboard(LocalizationService localizationService, long chatId)
+    {
+        return new InlineKeyboardMarkup(new[]
+        {
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData(
+                    localizationService.GetAdminStats(chatId),
+                    "admin:stats"),
+                InlineKeyboardButton.WithCallbackData(
+                    localizationService.GetAdminUsers(chatId),
+                    "admin:users")
+            },
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData(
+                    localizationService.GetAdminBroadcast(chatId),
+                    "admin:broadcast"),
+                InlineKeyboardButton.WithCallbackData(
+                    localizationService.GetAdminResetStats(chatId),
+                    "admin:reset")
+            }
+        });
+    }
+
+    /// <summary>
+    /// Creates a pagination keyboard for user list navigation.
+    /// </summary>
+    public static InlineKeyboardMarkup BuildUserPaginationKeyboard(int currentPage, int totalPages)
+    {
+        var buttons = new List<InlineKeyboardButton[]>();
+
+        var navRow = new List<InlineKeyboardButton>();
+
+        if (currentPage > 1)
+        {
+            navRow.Add(InlineKeyboardButton.WithCallbackData("⬅️", $"admin:users:page:{currentPage - 1}"));
+        }
+
+        navRow.Add(InlineKeyboardButton.WithCallbackData(
+            $"📄 {currentPage}/{totalPages}",
+            "admin:users:info"));
+
+        if (currentPage < totalPages)
+        {
+            navRow.Add(InlineKeyboardButton.WithCallbackData("➡️", $"admin:users:page:{currentPage + 1}"));
+        }
+
+        buttons.Add(navRow.ToArray());
+
+        buttons.Add(new[]
+        {
+            InlineKeyboardButton.WithCallbackData("🔙 Back to Admin", "admin:back")
+        });
+
+        return new InlineKeyboardMarkup(buttons);
+    }
+
+    /// <summary>
+    /// Parses admin callback data.
+    /// </summary>
+    public static bool TryParseAdminCallback(string callbackData, out string action, out string? parameter)
+    {
+        action = string.Empty;
+        parameter = null;
+
+        if (!callbackData.StartsWith("admin:", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        var parts = callbackData.Split(':');
+        if (parts.Length < 2)
+            return false;
+
+        action = parts[1];
+        if (parts.Length > 2)
+        {
+            parameter = string.Join(":", parts.Skip(2));
+        }
+
+        return true;
+    }
 }

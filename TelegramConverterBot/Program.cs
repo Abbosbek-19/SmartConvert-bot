@@ -95,6 +95,8 @@ public class Program
                 services.AddSingleton<FileDetectorService>();
                 services.AddSingleton<TempFileService>(sp =>
                     new TempFileService(botConfig.TempFilesPath, sp.GetRequiredService<ILogger<TempFileService>>()));
+                services.AddSingleton<ActivityTracker>();
+                services.AddSingleton<AdminService>();
 
                 // Register Converters
                 services.AddSingleton<DocxToPdfConverter>();
