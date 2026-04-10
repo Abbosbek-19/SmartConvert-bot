@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using TelegramConverterBot.Bot;
@@ -22,12 +23,12 @@ public class AdminService
     public AdminService(
         TelegramBotClient botClient,
         ActivityTracker activityTracker,
-        BotConfiguration config,
+        IOptions<BotConfiguration> config,
         ILogger<AdminService> logger)
     {
         _botClient = botClient;
         _activityTracker = activityTracker;
-        _adminIds = config.AdminIds;
+        _adminIds = config.Value.AdminIds;
         _logger = logger;
     }
 
