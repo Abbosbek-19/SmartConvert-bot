@@ -1,0 +1,14 @@
+{
+  "phases": {
+    "setup": {
+      "nixPkgs": ["dotnet-sdk_8"]
+    },
+    "build": {
+      "dependsOn": ["setup"],
+      "cmds": ["dotnet publish TelegramConverterBot/TelegramConverterBot.csproj -c Release -o out"]
+    }
+  },
+  "start": {
+    "cmd": "dotnet out/TelegramConverterBot.dll"
+  }
+}
