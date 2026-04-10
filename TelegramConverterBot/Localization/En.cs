@@ -49,7 +49,7 @@ Just send your file and I'll do the rest!";
     public const string BtnRussian = "🇷🇺 Русский";
 
     // Admin panel
-    public const string AdminWelcome = @"⚙️ **Admin Panel**
+    public const string AdminWelcome = @"⚙️ \*Admin Panel\*
 
 Choose an option:";
     public const string AdminStats = "📊 Statistics";

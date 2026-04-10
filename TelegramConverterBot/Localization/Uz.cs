@@ -49,7 +49,7 @@ Faylingizni yuboring va men hammasini qilaman!";
     public const string BtnRussian = "🇷🇺 Русский";
 
     // Admin panel
-    public const string AdminWelcome = @"⚙️ **Admin paneli**
+    public const string AdminWelcome = @"⚙️ \*Admin paneli\*
 
 Variantni tanlang:";
     public const string AdminStats = "📊 Statistika";

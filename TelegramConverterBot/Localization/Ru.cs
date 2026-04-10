@@ -49,7 +49,7 @@ public static class Ru
     public const string BtnRussian = "🇷🇺 Русский";
 
     // Admin panel
-    public const string AdminWelcome = @"⚙️ **Панель администратора**
+    public const string AdminWelcome = @"⚙️ \*Панель администратора\*
 
 Выберите действие:";
     public const string AdminStats = "📊 Статистика";
