@@ -390,4 +390,10 @@ public class BotConfiguration
     /// Array of Telegram user IDs who are administrators.
     /// </summary>
     public long[] AdminIds { get; set; } = Array.Empty<long>();
+
+    /// <summary>
+    /// iText7 license key for PDF operations (required for iText7 version 8.x in production).
+    /// Get your license key from https://itextpdf.com/en/products/itext-7/license-keys
+    /// </summary>
+    public string? IText7LicenseKey { get; set; }
 }

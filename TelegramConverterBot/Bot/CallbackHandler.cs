@@ -186,10 +186,29 @@ public class CallbackHandler
         catch (Exception ex)
         {
             _logger.LogError(ex, "Conversion failed for chat {ChatId}: {Source} → {Target}", chatId, sourceType, targetFormat);
+            
+            // Show more specific error message if available
+            var errorMessage = ex.InnerException?.Message ?? ex.Message;
+            
+            // If it's a user-friendly error (like password-protected, license issue, or scanned PDF), show it directly
+            string userMessage;
+            if (errorMessage.Contains("password-protected", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("license", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("scanned image", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("OCR", StringComparison.OrdinalIgnoreCase))
+            {
+                userMessage = $"❌ {errorMessage}";
+            }
+            else
+            {
+                // For other errors, show generic message
+                userMessage = _localizationService.GetConversionFailed(chatId);
+            }
+            
             await _botClient.EditMessageText(
                 chatId,
                 progressMessage.MessageId,
-                _localizationService.GetConversionFailed(chatId),
+                userMessage,
                 cancellationToken: cancellationToken);
         }
         finally

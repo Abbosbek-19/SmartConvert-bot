@@ -36,19 +36,40 @@ public class PdfToDocxConverter : IConverter
 
         _logger.LogInformation("Converting PDF to DOCX: {Input} → {Output}", inputPath, outputPath);
 
-        await Task.Run(() =>
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            // Extract text from PDF using iText7
-            var pageTexts = ExtractTextFromPdf(inputPath);
+                // Extract text from PDF using iText7
+                var pageTexts = ExtractTextFromPdf(inputPath);
 
-            // Create DOCX using OpenXML SDK
-            CreateDocxFromText(outputPath, pageTexts);
-        }, cancellationToken);
+                // Check if any text was extracted (scanned PDF check)
+                bool hasContent = pageTexts.Any(t => !string.IsNullOrWhiteSpace(t));
+                if (!hasContent)
+                {
+                    _logger.LogWarning("PDF contains no extractable text (may be a scanned image): {Input}", inputPath);
+                    throw new InvalidOperationException("This PDF appears to be a scanned image with no extractable text. OCR is required to convert this type of PDF to DOCX.");
+                }
 
-        _logger.LogInformation("PDF to DOCX conversion completed: {Output}", outputPath);
-        return outputPath;
+                // Create DOCX using OpenXML SDK
+                CreateDocxFromText(outputPath, pageTexts);
+            }, cancellationToken);
+
+            _logger.LogInformation("PDF to DOCX conversion completed: {Output}", outputPath);
+            return outputPath;
+        }
+        catch (InvalidOperationException)
+        {
+            // Re-throw our custom errors as-is
+            throw;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogError(ex, "Unexpected error during PDF to DOCX conversion: {Input}", inputPath);
+            throw new InvalidOperationException($"Failed to convert PDF: {ex.Message}", ex);
+        }
     }
 
     /// <summary>
@@ -60,20 +81,28 @@ public class PdfToDocxConverter : IConverter
     {
         var pageTexts = new List<string>();
 
-        using var pdfReader = new PdfReader(pdfPath);
-        using var pdfDoc = new PdfDocument(pdfReader);
-
-        int pageCount = pdfDoc.GetNumberOfPages();
-
-        for (int i = 1; i <= pageCount; i++)
+        PdfDocument? pdfDoc = null;
+        try
         {
-            var strategy = new LocationTextExtractionStrategy();
-            var page = pdfDoc.GetPage(i);
-            var text = PdfTextExtractor.GetTextFromPage(page, strategy);
-            pageTexts.Add(text);
-        }
+            var pdfReader = new PdfReader(pdfPath);
+            pdfDoc = new PdfDocument(pdfReader);
 
-        return pageTexts;
+            int pageCount = pdfDoc.GetNumberOfPages();
+
+            for (int i = 1; i <= pageCount; i++)
+            {
+                var strategy = new LocationTextExtractionStrategy();
+                var page = pdfDoc.GetPage(i);
+                var text = PdfTextExtractor.GetTextFromPage(page, strategy);
+                pageTexts.Add(text);
+            }
+
+            return pageTexts;
+        }
+        finally
+        {
+            pdfDoc?.Close();
+        }
     }
 
     /// <summary>

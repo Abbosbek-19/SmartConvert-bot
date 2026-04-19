@@ -17,6 +17,12 @@ RUN dotnet publish "TelegramConverterBot.csproj" \
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# Install a Unicode TrueType font so iText7 can render Cyrillic / Uzbek text
+# (the default Helvetica PDF font has no glyphs for these characters).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create directories for persistent data
 RUN mkdir -p /app/temp /app/logs
 
